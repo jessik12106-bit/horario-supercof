@@ -1,0 +1,205 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Gestión de Horarios</title>
+
+  <style>
+    body {
+      font-family: Arial;
+      background: #eef2f7;
+      margin: 0;
+    }
+
+    header {
+      background: #1e3a8a;
+      color: white;
+      padding: 15px;
+      text-align: center;
+      font-size: 20px;
+    }
+
+    .container {
+      padding: 20px;
+    }
+
+    .card {
+      background: white;
+      padding: 20px;
+      margin-bottom: 20px;
+      border-radius: 10px;
+      box-shadow: 0px 2px 10px rgba(0,0,0,0.1);
+    }
+
+    input, select {
+      padding: 10px;
+      margin: 5px;
+      border-radius: 5px;
+      border: 1px solid #ccc;
+    }
+
+    button {
+      padding: 10px 15px;
+      background: #2563eb;
+      color: white;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+    }
+
+    th {
+      background: #2563eb;
+      color: white;
+    }
+
+    th, td {
+      padding: 10px;
+      border: 1px solid #ddd;
+      text-align: center;
+    }
+
+    tr:hover {
+      background: #f1f5f9;
+    }
+  </style>
+</head>
+
+<body>
+
+<header>📅 Sistema de Horarios</header>
+
+<div class="container">
+
+  <!-- LOGIN -->
+  <div class="card" id="login">
+    <h2>Iniciar sesión</h2>
+    <input type="text" id="usuario" placeholder="Usuario"><br>
+    <input type="password" id="password" placeholder="Contraseña"><br>
+    <button onclick="login()">Ingresar</button>
+  </div>
+
+  <!-- APP -->
+  <div id="app" style="display:none;">
+
+    <div class="card">
+      <h2>Horarios</h2>
+
+      🔎 Buscar empleado:
+      <input type="text" id="filtroNombre" onkeyup="filtrar()">
+
+      👥 Grupo:
+      <select id="filtroGrupo" onchange="filtrar()">
+        <option value="">Todos</option>
+      </select>
+
+      <table id="tabla"></table>
+    </div>
+
+  </div>
+
+</div>
+
+<script>
+
+const url = "https://script.google.com/macros/s/AKfycbwH2MYmCejBdLdRCCTTDdfCx5fSp5EjFCuJ7VRkCEOMtkyYNUJjBQiH-Px5FlZgYYMjvw/exec";
+let datosGlobal = [];
+let encabezados = [];
+
+function login() {
+  fetch(url, {
+    method: "POST",
+    body: JSON.stringify({
+      action: "login",
+      usuario: document.getElementById("usuario").value,
+      password: document.getElementById("password").value
+    })
+  })
+  .then(res => res.json())
+  .then(data => {
+    if (data.success) {
+      document.getElementById("login").style.display = "none";
+      document.getElementById("app").style.display = "block";
+      cargarDatos();
+    } else {
+      alert("Usuario incorrecto");
+    }
+  });
+}
+
+function cargarDatos() {
+  fetch(url)
+    .then(res => res.json())
+    .then(data => {
+      datosGlobal = data;
+      encabezados = data[0];
+      llenarFiltroGrupo(data);
+      pintarTabla(data);
+    });
+}
+
+function llenarFiltroGrupo(data) {
+  let grupos = new Set();
+
+  data.slice(1).forEach(fila => {
+    grupos.add(fila[0]);
+  });
+
+  let select = document.getElementById("filtroGrupo");
+
+  grupos.forEach(g => {
+    let option = document.createElement("option");
+    option.value = g;
+    option.text = g;
+    select.appendChild(option);
+  });
+}
+
+function pintarTabla(data) {
+  let tabla = document.getElementById("tabla");
+  tabla.innerHTML = "";
+
+  data.forEach((fila, i) => {
+    let tr = document.createElement("tr");
+
+    fila.forEach((col, j) => {
+      let celda = document.createElement(i === 0 ? "th" : "td");
+
+      // 🎨 Resaltar días libres
+      if (i > 0 && (col === "OFF" || col === "Descanso")) {
+        celda.style.background = "#f87171";
+        celda.style.color = "white";
+      }
+
+      celda.innerText = col;
+      tr.appendChild(celda);
+    });
+
+    tabla.appendChild(tr);
+  });
+}
+
+function filtrar() {
+  let nombre = document.getElementById("filtroNombre").value.toLowerCase();
+  let grupo = document.getElementById("filtroGrupo").value;
+
+  let filtrados = datosGlobal.filter((fila, i) => {
+    if (i === 0) return true;
+
+    let coincideNombre = fila[1].toLowerCase().includes(nombre);
+    let coincideGrupo = grupo === "" || fila[0] === grupo;
+
+    return coincideNombre && coincideGrupo;
+  });
+
+  pintarTabla(filtrados);
+}
+
+</script>
+
+</body>
+</html>
