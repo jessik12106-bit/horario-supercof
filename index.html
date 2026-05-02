@@ -114,6 +114,7 @@ const url = "https://script.google.com/macros/s/AKfycbwH2MYmCejBdLdRCCTTDdfCx5fS
 
 let datosGlobal = [];
 
+// 🔐 LOGIN
 function login() {
   const usuario = document.getElementById("usuario").value;
   const password = document.getElementById("password").value;
@@ -142,6 +143,7 @@ function login() {
   });
 }
 
+// 📥 CARGAR DATOS
 function cargarDatos() {
   fetch(url)
     .then(res => res.json())
@@ -152,6 +154,7 @@ function cargarDatos() {
     });
 }
 
+// 👥 FILTRO GRUPO
 function llenarFiltroGrupo(data) {
   let grupos = new Set();
 
@@ -170,6 +173,18 @@ function llenarFiltroGrupo(data) {
   });
 }
 
+// 📅 FORMATEAR FECHA
+function formatearFecha(fechaISO) {
+  let fecha = new Date(fechaISO);
+
+  return fecha.toLocaleDateString("es-CO", {
+    day: "2-digit",
+    month: "2-digit",
+    year: "numeric"
+  });
+}
+
+// 📊 PINTAR TABLA
 function pintarTabla(data) {
   let tabla = document.getElementById("tabla");
   tabla.innerHTML = "";
@@ -180,13 +195,19 @@ function pintarTabla(data) {
     fila.forEach((col) => {
       let celda = document.createElement(i === 0 ? "th" : "td");
 
-      // Resaltar días libres
+      // 🎯 FORMATEAR FECHA
+      if (typeof col === "string" && col.includes("T") && col.includes("Z")) {
+        celda.innerText = formatearFecha(col);
+      } else {
+        celda.innerText = col;
+      }
+
+      // 🔴 Resaltar descansos
       if (i > 0 && (col === "OFF" || col === "Descanso")) {
         celda.style.background = "#f87171";
         celda.style.color = "white";
       }
 
-      celda.innerText = col;
       tr.appendChild(celda);
     });
 
@@ -194,6 +215,7 @@ function pintarTabla(data) {
   });
 }
 
+// 🔎 FILTRO
 function filtrar() {
   let nombre = document.getElementById("filtroNombre").value.toLowerCase();
   let grupo = document.getElementById("filtroGrupo").value;
@@ -210,13 +232,14 @@ function filtrar() {
   pintarTabla(filtrados);
 }
 
+// 🚪 CERRAR SESIÓN
 function cerrarSesion() {
   localStorage.removeItem("usuario");
   localStorage.removeItem("rol");
   location.reload();
 }
 
-// Mantener sesión activa
+// 🔄 MANTENER SESIÓN
 window.onload = function() {
   const usuario = localStorage.getItem("usuario");
 
