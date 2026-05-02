@@ -86,7 +86,10 @@
   <!-- APP -->
   <div id="app" style="display:none;">
 
-    <div class="card">
+    <button onclick="cerrarSesion()" style="float:right; margin:10px;">
+  Cerrar sesión
+
+  <div class="card">
       <h2>Horarios</h2>
 
       🔎 Buscar empleado:
@@ -199,7 +202,15 @@ function filtrar() {
   pintarTabla(filtrados);
 }
 
+function cerrarSesion() {
+  localStorage.removeItem("usuario");
+  localStorage.removeItem("rol");
+  location.reload();
+}
+
 </script>
+
+
 
 </body>
 </html>
