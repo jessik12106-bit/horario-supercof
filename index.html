@@ -87,9 +87,10 @@
   <div id="app" style="display:none;">
 
     <button onclick="cerrarSesion()" style="float:right; margin:10px;">
-  Cerrar sesión
+      Cerrar sesión
+    </button>
 
-  <div class="card">
+    <div class="card">
       <h2>Horarios</h2>
 
       🔎 Buscar empleado:
@@ -110,26 +111,33 @@
 <script>
 
 const url = "https://script.google.com/macros/s/AKfycbwH2MYmCejBdLdRCCTTDdfCx5fSp5EjFCuJ7VRkCEOMtkyYNUJjBQiH-Px5FlZgYYMjvw/exec";
+
 let datosGlobal = [];
-let encabezados = [];
 
 function login() {
+  const usuario = document.getElementById("usuario").value;
+  const password = document.getElementById("password").value;
+
   fetch(url, {
     method: "POST",
     body: JSON.stringify({
       action: "login",
-      usuario: document.getElementById("usuario").value,
-      password: document.getElementById("password").value
+      usuario: usuario,
+      password: password
     })
   })
   .then(res => res.json())
   .then(data => {
     if (data.success) {
+      localStorage.setItem("usuario", usuario);
+      localStorage.setItem("rol", data.rol);
+
       document.getElementById("login").style.display = "none";
       document.getElementById("app").style.display = "block";
+
       cargarDatos();
     } else {
-      alert("Usuario incorrecto");
+      alert("Usuario o contraseña incorrectos");
     }
   });
 }
@@ -139,7 +147,6 @@ function cargarDatos() {
     .then(res => res.json())
     .then(data => {
       datosGlobal = data;
-      encabezados = data[0];
       llenarFiltroGrupo(data);
       pintarTabla(data);
     });
@@ -153,6 +160,7 @@ function llenarFiltroGrupo(data) {
   });
 
   let select = document.getElementById("filtroGrupo");
+  select.innerHTML = '<option value="">Todos</option>';
 
   grupos.forEach(g => {
     let option = document.createElement("option");
@@ -169,10 +177,10 @@ function pintarTabla(data) {
   data.forEach((fila, i) => {
     let tr = document.createElement("tr");
 
-    fila.forEach((col, j) => {
+    fila.forEach((col) => {
       let celda = document.createElement(i === 0 ? "th" : "td");
 
-      // 🎨 Resaltar días libres
+      // Resaltar días libres
       if (i > 0 && (col === "OFF" || col === "Descanso")) {
         celda.style.background = "#f87171";
         celda.style.color = "white";
@@ -208,9 +216,18 @@ function cerrarSesion() {
   location.reload();
 }
 
+// Mantener sesión activa
+window.onload = function() {
+  const usuario = localStorage.getItem("usuario");
+
+  if (usuario) {
+    document.getElementById("login").style.display = "none";
+    document.getElementById("app").style.display = "block";
+    cargarDatos();
+  }
+};
+
 </script>
-
-
 
 </body>
 </html>
