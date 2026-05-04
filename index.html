@@ -189,23 +189,65 @@ function pintarTabla(data) {
   let tabla = document.getElementById("tabla");
   tabla.innerHTML = "";
 
+  const empleadosResaltados = [
+    "cristhian perez",
+    "patricia marin",
+    "liliana prieto",
+    "santiago fajardo",
+    "gustavo morales",
+    "fabian valero",
+    "wilmar chavez",
+    "sneider rios"
+  ];
+
   data.forEach((fila, i) => {
     let tr = document.createElement("tr");
 
-    fila.forEach((col) => {
+    fila.forEach((col, j) => {
       let celda = document.createElement(i === 0 ? "th" : "td");
 
-      // 🎯 FORMATEAR FECHA
+      // 📅 FORMATEAR FECHA
       if (typeof col === "string" && col.includes("T") && col.includes("Z")) {
         celda.innerText = formatearFecha(col);
       } else {
         celda.innerText = col;
       }
 
-      // 🔴 Resaltar descansos
-      if (i > 0 && (col === "OFF" || col === "Descanso")) {
-        celda.style.background = "#f87171";
-        celda.style.color = "white";
+      // ⭐ RESALTAR EMPLEADOS
+      if (i > 0 && j === 1) {
+        if (empleadosResaltados.includes(col.toLowerCase())) {
+          celda.style.fontWeight = "bold";
+          celda.style.background = "#fde68a";
+        }
+      }
+
+      // 🎨 COLORES TURNOS
+      if (i > 0) {
+        let valor = col.toUpperCase();
+
+        if (["M","M1"].includes(valor)) celda.style.background = "#bbf7d0";
+        else if (["T","T1"].includes(valor)) celda.style.background = "#ffffff";
+        else if (["N","N1"].includes(valor)) celda.style.background = "#bae6fd";
+        else if (["I","I1"].includes(valor)) celda.style.background = "#fbcfe8";
+        else if (["SN","L"].includes(valor)) celda.style.background = "#e5e7eb";
+        else if (valor === "IR") celda.style.background = "#fb923c";
+        else if (valor === "AN") {
+          celda.style.background = "#1e3a8a";
+          celda.style.color = "white";
+        }
+        else if (valor === "LI") celda.style.background = "#fdba74";
+        else if (valor === "IN") celda.style.background = "#fca5a5";
+        else if (valor === "CAP") celda.style.background = "#c4b5fd";
+        else if (valor === "SUSP") {
+          celda.style.background = "#7f1d1d";
+          celda.style.color = "white";
+        }
+        else if (valor === "CA") celda.style.background = "#38bdf8";
+        else if (valor === "V") {
+          celda.style.background = "#166534";
+          celda.style.color = "white";
+        }
+        else if (valor === "DF") celda.style.background = "#fde047";
       }
 
       tr.appendChild(celda);
@@ -215,21 +257,20 @@ function pintarTabla(data) {
   });
 }
 
-// 🔎 FILTRO
+// 🔎 FILTRO (CORREGIDO)
 function filtrar() {
   let nombre = document.getElementById("filtroNombre").value.toLowerCase();
   let grupo = document.getElementById("filtroGrupo").value;
 
-  let filtrados = datosGlobal.filter((fila, i) => {
-    if (i === 0) return true;
+  let encabezado = datosGlobal[0];
 
+  let filtrados = datosGlobal.slice(1).filter(fila => {
     let coincideNombre = fila[1].toLowerCase().includes(nombre);
     let coincideGrupo = grupo === "" || fila[0] === grupo;
-
     return coincideNombre && coincideGrupo;
   });
 
-  pintarTabla(filtrados);
+  pintarTabla([encabezado, ...filtrados]);
 }
 
 // 🚪 CERRAR SESIÓN
