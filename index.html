@@ -66,6 +66,18 @@
     tr:hover {
       background: #f1f5f9;
     }
+
+    /* 🔥 ENCABEZADOS FIJOS */
+    th {
+      position: sticky;
+      top: 0;
+      z-index: 2;
+    }
+
+    tr:nth-child(2) th {
+      top: 40px;
+      z-index: 1;
+    }
   </style>
 </head>
 
@@ -158,7 +170,7 @@ function cargarDatos() {
 function llenarFiltroGrupo(data) {
   let grupos = new Set();
 
-  data.slice(1).forEach(fila => {
+  data.slice(2).forEach(fila => {
     grupos.add(fila[0]);
   });
 
@@ -190,21 +202,16 @@ function pintarTabla(data) {
   tabla.innerHTML = "";
 
   const empleadosResaltados = [
-    "cristhian perez",
-    "patricia marin",
-    "liliana prieto",
-    "santiago fajardo",
-    "gustavo morales",
-    "fabian valero",
-    "wilmar chavez",
-    "sneider rios"
+    "cristhian perez","patricia marin","liliana prieto",
+    "santiago fajardo","gustavo morales","fabian valero",
+    "wilmar chavez","sneider rios"
   ];
 
   data.forEach((fila, i) => {
     let tr = document.createElement("tr");
 
     fila.forEach((col, j) => {
-      let celda = document.createElement(i === 0 ? "th" : "td");
+      let celda = document.createElement(i < 2 ? "th" : "td");
 
       // 📅 FORMATEAR FECHA
       if (typeof col === "string" && col.includes("T") && col.includes("Z")) {
@@ -214,7 +221,7 @@ function pintarTabla(data) {
       }
 
       // ⭐ RESALTAR EMPLEADOS
-      if (i > 0 && j === 1) {
+      if (i > 1 && j === 1) {
         if (empleadosResaltados.includes(col.toLowerCase())) {
           celda.style.fontWeight = "bold";
           celda.style.background = "#fde68a";
@@ -222,13 +229,13 @@ function pintarTabla(data) {
       }
 
       // 🎨 COLORES TURNOS
-      if (i > 0) {
+      if (i > 1) {
         let valor = col.toUpperCase();
 
         if (["M","M1"].includes(valor)) celda.style.background = "#bbf7d0";
         else if (["T","T1"].includes(valor)) celda.style.background = "#ffffff";
-        else if (["N","N1"].includes(valor)) celda.style.background = "#bae6fd";
-        else if (["I","I1"].includes(valor)) celda.style.background = "#fbcfe8";
+        else if (["N","N1"].includes(valor)) celda.style.background = "#1E90FF";
+        else if (["I","I1"].includes(valor)) celda.style.background = "#FF1493";
         else if (["SN","L"].includes(valor)) celda.style.background = "#e5e7eb";
         else if (valor === "IR") celda.style.background = "#fb923c";
         else if (valor === "AN") {
@@ -257,20 +264,21 @@ function pintarTabla(data) {
   });
 }
 
-// 🔎 FILTRO (CORREGIDO)
+// 🔎 FILTRO CORREGIDO
 function filtrar() {
   let nombre = document.getElementById("filtroNombre").value.toLowerCase();
   let grupo = document.getElementById("filtroGrupo").value;
 
-  let encabezado = datosGlobal[0];
+  let encabezado1 = datosGlobal[0];
+  let encabezado2 = datosGlobal[1];
 
-  let filtrados = datosGlobal.slice(1).filter(fila => {
+  let filtrados = datosGlobal.slice(2).filter(fila => {
     let coincideNombre = fila[1].toLowerCase().includes(nombre);
     let coincideGrupo = grupo === "" || fila[0] === grupo;
     return coincideNombre && coincideGrupo;
   });
 
-  pintarTabla([encabezado, ...filtrados]);
+  pintarTabla([encabezado1, encabezado2, ...filtrados]);
 }
 
 // 🚪 CERRAR SESIÓN
