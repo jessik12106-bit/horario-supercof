@@ -15,7 +15,6 @@
       color: white;
       padding: 15px;
       text-align: center;
-      font-size: 20px;
     }
 
     .container {
@@ -25,25 +24,8 @@
     .card {
       background: white;
       padding: 20px;
-      margin-bottom: 20px;
       border-radius: 10px;
       box-shadow: 0px 2px 10px rgba(0,0,0,0.1);
-    }
-
-    input, select {
-      padding: 10px;
-      margin: 5px;
-      border-radius: 5px;
-      border: 1px solid #ccc;
-    }
-
-    button {
-      padding: 10px 15px;
-      background: #2563eb;
-      color: white;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
     }
 
     table {
@@ -52,19 +34,20 @@
       margin-top: 15px;
     }
 
+    th, td {
+      padding: 8px;
+      border: 1px solid #ddd;
+      text-align: center;
+    }
+
     th {
       background: #2563eb;
       color: white;
     }
 
-    th, td {
-      padding: 10px;
-      border: 1px solid #ddd;
-      text-align: center;
-    }
-
-    tr:hover {
-      background: #f1f5f9;
+    .resaltado {
+      font-weight: bold;
+      border: 2px solid orange;
     }
   </style>
 </head>
@@ -75,34 +58,27 @@
 
 <div class="container">
 
-  <!-- LOGIN -->
   <div class="card" id="login">
-    <h2>Iniciar sesión</h2>
-    <input type="text" id="usuario" placeholder="Usuario"><br>
-    <input type="password" id="password" placeholder="Contraseña"><br>
+    <input type="text" id="usuario" placeholder="Usuario"><br><br>
+    <input type="password" id="password" placeholder="Contraseña"><br><br>
     <button onclick="login()">Ingresar</button>
   </div>
 
-  <!-- APP -->
   <div id="app" style="display:none;">
 
-    <button onclick="cerrarSesion()" style="float:right; margin:10px;">
-      Cerrar sesión
-    </button>
+    <button onclick="cerrarSesion()">Cerrar sesión</button>
 
-    <div class="card">
-      <h2>Horarios</h2>
+    <br><br>
 
-      🔎 Buscar empleado:
-      <input type="text" id="filtroNombre" onkeyup="filtrar()">
+    🔎 Buscar:
+    <input type="text" id="filtroNombre" onkeyup="filtrar()">
 
-      👥 Grupo:
-      <select id="filtroGrupo" onchange="filtrar()">
-        <option value="">Todos</option>
-      </select>
+    👥 Grupo:
+    <select id="filtroGrupo" onchange="filtrar()">
+      <option value="">Todos</option>
+    </select>
 
-      <table id="tabla"></table>
-    </div>
+    <table id="tabla"></table>
 
   </div>
 
@@ -110,40 +86,40 @@
 
 <script>
 
-const url = "https://script.google.com/macros/s/AKfycbwH2MYmCejBdLdRCCTTDdfCx5fSp5EjFCuJ7VRkCEOMtkyYNUJjBQiH-Px5FlZgYYMjvw/exec";
+const url = "TU_URL_AQUI";
 
 let datosGlobal = [];
 
-// 🔐 LOGIN
-function login() {
-  const usuario = document.getElementById("usuario").value;
-  const password = document.getElementById("password").value;
+const nombresResaltados = [
+  "Cristhian Perez","Patricia Marin","Liliana Prieto",
+  "Santiago Fajardo","Gustavo Morales","Fabian Valero",
+  "Wilmar Chavez","Sneider Rios"
+];
 
+// LOGIN
+function login() {
   fetch(url, {
     method: "POST",
     body: JSON.stringify({
       action: "login",
-      usuario: usuario,
-      password: password
+      usuario: usuario.value,
+      password: password.value
     })
   })
   .then(res => res.json())
   .then(data => {
     if (data.success) {
-      localStorage.setItem("usuario", usuario);
-      localStorage.setItem("rol", data.rol);
-
+      localStorage.setItem("usuario", usuario.value);
       document.getElementById("login").style.display = "none";
       document.getElementById("app").style.display = "block";
-
       cargarDatos();
     } else {
-      alert("Usuario o contraseña incorrectos");
+      alert("Error");
     }
   });
 }
 
-// 📥 CARGAR DATOS
+// CARGAR
 function cargarDatos() {
   fetch(url)
     .then(res => res.json())
@@ -154,12 +130,12 @@ function cargarDatos() {
     });
 }
 
-// 👥 FILTRO GRUPO
+// GRUPOS
 function llenarFiltroGrupo(data) {
   let grupos = new Set();
 
-  data.slice(1).forEach(fila => {
-    grupos.add(fila[0]);
+  data.slice(2).forEach(fila => {
+    grupos.add(fila[0].valor);
   });
 
   let select = document.getElementById("filtroGrupo");
@@ -173,81 +149,28 @@ function llenarFiltroGrupo(data) {
   });
 }
 
-// 📅 FORMATEAR FECHA
-function formatearFecha(fechaISO) {
-  let fecha = new Date(fechaISO);
-
-  return fecha.toLocaleDateString("es-CO", {
-    day: "2-digit",
-    month: "2-digit",
-    year: "numeric"
-  });
-}
-
-// 📊 PINTAR TABLA
+// TABLA
 function pintarTabla(data) {
   let tabla = document.getElementById("tabla");
   tabla.innerHTML = "";
-
-  const empleadosResaltados = [
-    "cristhian perez",
-    "patricia marin",
-    "liliana prieto",
-    "santiago fajardo",
-    "gustavo morales",
-    "fabian valero",
-    "wilmar chavez",
-    "sneider rios"
-  ];
 
   data.forEach((fila, i) => {
     let tr = document.createElement("tr");
 
     fila.forEach((col, j) => {
-      let celda = document.createElement(i === 0 ? "th" : "td");
+      let celda = document.createElement(i < 2 ? "th" : "td");
 
-      // 📅 FORMATEAR FECHA
-      if (typeof col === "string" && col.includes("T") && col.includes("Z")) {
-        celda.innerText = formatearFecha(col);
-      } else {
-        celda.innerText = col;
+      let valor = col.valor;
+      let color = col.color;
+
+      celda.innerText = valor;
+
+      if (color && color !== "#ffffff") {
+        celda.style.background = color;
       }
 
-      // ⭐ RESALTAR EMPLEADOS
-      if (i > 0 && j === 1) {
-        if (empleadosResaltados.includes(col.toLowerCase())) {
-          celda.style.fontWeight = "bold";
-          celda.style.background = "#fde68a";
-        }
-      }
-
-      // 🎨 COLORES TURNOS
-      if (i > 0) {
-        let valor = col.toUpperCase();
-
-        if (["M","M1"].includes(valor)) celda.style.background = "#bbf7d0";
-        else if (["T","T1"].includes(valor)) celda.style.background = "#ffffff";
-        else if (["N","N1"].includes(valor)) celda.style.background = "#bae6fd";
-        else if (["I","I1"].includes(valor)) celda.style.background = "#fbcfe8";
-        else if (["SN","L"].includes(valor)) celda.style.background = "#e5e7eb";
-        else if (valor === "IR") celda.style.background = "#fb923c";
-        else if (valor === "AN") {
-          celda.style.background = "#1e3a8a";
-          celda.style.color = "white";
-        }
-        else if (valor === "LI") celda.style.background = "#fdba74";
-        else if (valor === "IN") celda.style.background = "#fca5a5";
-        else if (valor === "CAP") celda.style.background = "#c4b5fd";
-        else if (valor === "SUSP") {
-          celda.style.background = "#7f1d1d";
-          celda.style.color = "white";
-        }
-        else if (valor === "CA") celda.style.background = "#38bdf8";
-        else if (valor === "V") {
-          celda.style.background = "#166534";
-          celda.style.color = "white";
-        }
-        else if (valor === "DF") celda.style.background = "#fde047";
+      if (i > 1 && j === 1 && nombresResaltados.includes(valor)) {
+        celda.classList.add("resaltado");
       }
 
       tr.appendChild(celda);
@@ -257,36 +180,35 @@ function pintarTabla(data) {
   });
 }
 
-// 🔎 FILTRO (CORREGIDO)
+// FILTRO
 function filtrar() {
-  let nombre = document.getElementById("filtroNombre").value.toLowerCase();
-  let grupo = document.getElementById("filtroGrupo").value;
+  let nombre = filtroNombre.value.toLowerCase();
+  let grupo = filtroGrupo.value;
 
-  let encabezado = datosGlobal[0];
+  let encabezado1 = datosGlobal[0];
+  let encabezado2 = datosGlobal[1];
 
-  let filtrados = datosGlobal.slice(1).filter(fila => {
-    let coincideNombre = fila[1].toLowerCase().includes(nombre);
-    let coincideGrupo = grupo === "" || fila[0] === grupo;
-    return coincideNombre && coincideGrupo;
+  let filtrados = datosGlobal.slice(2).filter(fila => {
+    let n = fila[1].valor.toLowerCase();
+    let g = fila[0].valor;
+
+    return n.includes(nombre) && (grupo === "" || g === grupo);
   });
 
-  pintarTabla([encabezado, ...filtrados]);
+  pintarTabla([encabezado1, encabezado2, ...filtrados]);
 }
 
-// 🚪 CERRAR SESIÓN
+// LOGOUT
 function cerrarSesion() {
-  localStorage.removeItem("usuario");
-  localStorage.removeItem("rol");
+  localStorage.clear();
   location.reload();
 }
 
-// 🔄 MANTENER SESIÓN
-window.onload = function() {
-  const usuario = localStorage.getItem("usuario");
-
-  if (usuario) {
-    document.getElementById("login").style.display = "none";
-    document.getElementById("app").style.display = "block";
+// AUTOLOGIN
+window.onload = () => {
+  if (localStorage.getItem("usuario")) {
+    login.style.display = "none";
+    app.style.display = "block";
     cargarDatos();
   }
 };
